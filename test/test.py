@@ -5,7 +5,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
 from cocotb.triggers import ClockCycles
-from cocotb.types import Logic
+from cocotb.types import Logics
 from cocotb.types import LogicArray
 
 async def await_half_sclk(dut):
