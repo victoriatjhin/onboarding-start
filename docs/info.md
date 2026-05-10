@@ -14,6 +14,7 @@ This project implements SPI controlled PWM peripheral which receives configurati
 ## How to test
 
 Send SPI to configure the registers and observe PWM output.
+
 ## External hardware
 
 None
