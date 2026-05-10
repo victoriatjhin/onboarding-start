@@ -1,4 +1,4 @@
-'default_nettype none
+`default_nettype none
 
 module spi_peripheral (
     input wire clk, 
@@ -17,7 +17,7 @@ reg sclk_sync1, sclk_sync2, sclk_sync3;
 reg copi_sync1, copi_sync2;
 reg ncs_sync1, ncs_sync2;
 
-always @(posedge clk or negege rst_n) begin 
+always @(posedge clk or negedge rst_n) begin
     if (rst_n==0) begin
         sclk_sync1 <=0;
         sclk_sync2 <=0;
@@ -51,7 +51,7 @@ always @(posedge clk or negedge rst_n) begin
     if (rst_n == 0) begin
         bit_count <= 0;
         shift_reg <= 0;
-        transation_ready <= 0;
+        transaction_ready <= 0;
     end else begin
         transaction_ready <= 0;
         if (ncs_sync2 == 1) begin
@@ -67,7 +67,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-localparam maz_address = 7'h04;
+localparam max_address = 7'h04;
 
 wire rw_bit;
 wire [6:0] address;
@@ -86,7 +86,7 @@ always @(posedge clk or negedge rst_n) begin
         pwm_duty_cycle <= 8'h00;
     end else if (transaction_ready && (rw_bit == 0) && (address <= max_address)) begin 
         case (address)
-        7'h00: en_reg_7_0 <= data;
+        7'h00: en_reg_out_7_0 <= data;
         7'h01: en_reg_out_15_8 <= data;
         7'h02: en_reg_pwm_7_0 <= data;
         7'h03: en_reg_pwm_15_8 <= data;
