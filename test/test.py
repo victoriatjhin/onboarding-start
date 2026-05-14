@@ -23,7 +23,7 @@ def ui_in_logicarray(ncs, bit, sclk):
     """Setup the ui_in value as a LogicArray."""
     return LogicArray(f"00000{ncs}{bit}{sclk}")
 
-async def send_spi_transaction(dut, r_w, address, data):
+async def send_spi_transaction(dut, 1, 0x00, 0xF0):
     """
     Send an SPI transaction with format:
     - 1 bit for Read/Write
