@@ -23,7 +23,7 @@ def ui_in_logicarray(ncs, bit, sclk):
     """Setup the ui_in value as a LogicArray."""
     return LogicArray(f"00000{ncs}{bit}{sclk}")
 
-async def send_spi_transaction(dut, 1, 0x00, 0xF0):
+async def send_spi_transaction(dut, r_w, address, data):
     """
     Send an SPI transaction with format:
     - 1 bit for Read/Write
@@ -193,7 +193,6 @@ async def test_pwm_freq(dut):
 @cocotb.test()
 async def test_pwm_duty(dut):
     # Write your test here
-    async def test_pwm_duty(dut):
     dut._log.info("Start PWM Duty Cycle test")
 
     clock = Clock(dut.clk, 100, units="ns")
