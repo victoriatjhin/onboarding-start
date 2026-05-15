@@ -43,7 +43,7 @@ wire ncs_rising;
 assign sclk_rising = (sclk_sync2 == 1) && (sclk_sync3 == 0);
 assign ncs_rising = (ncs_sync1 == 1) && (ncs_sync2 == 0);
 
-reg [3:0] bit_count;
+reg [4:0] bit_count;
 reg [15:0] shift_reg;
 reg transaction_ready;
 

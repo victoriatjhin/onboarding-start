@@ -6,7 +6,8 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
 from cocotb.triggers import FallingEdge
 from cocotb.triggers import ClockCycles
-from cocotb.types import Logics
+from cocotb.triggers import ValueChange
+from cocotb.types import Logic
 from cocotb.types import LogicArray
 
 async def await_half_sclk(dut):
@@ -172,11 +173,17 @@ async def test_pwm_freq(dut):
     await send_spi_transaction(dut, 1, 0x04, 0x80)  # 50% duty cycle
 
     await ClockCycles(dut.clk, 100)
-    await RisingEdge(dut.uo_out)
-    time1 = cocotb.utils.get_sim_time(units="us")
-
-    await RisingEdge(dut.uo_out)
-    time2 = cocotb.utils.get_sim_time(units="us")
+    from cocotb.triggers import ValueChange
+    while True:
+        await ValueChange(dut.uo_out)
+        if dut.uo_out.value.integer & 0x01:
+            time1 = cocotb.utils.get_sim_time(units="us")
+            break
+    while True:
+        await ValueChange(dut.uo_out)
+        if dut.uo_out.value.integer & 0x01:
+            time2 = cocotb.utils.get_sim_time(units="us")
+            break
 
     period_us = time2 - time1
     frequency = 1_000_000 / period_us
@@ -226,14 +233,23 @@ async def test_pwm_duty(dut):
     await send_spi_transaction(dut, 1, 0x04, 0x80)
     await ClockCycles(dut.clk, 100)
 
-    await RisingEdge(dut.uo_out)
-    rise_time = cocotb.utils.get_sim_time(units="us")
+    while True:
+        await ValueChange(dut.uo_out)
+        if dut.uo_out.value.integer & 0x01:
+            rise_time = cocotb.utils.get_sim_time(units="us")
+            break
 
-    await FallingEdge(dut.uo_out)
-    fall_time = cocotb.utils.get_sim_time(units="us")
+    while True:
+        await ValueChange(dut.uo_out)
+        if not (dut.uo_out.value.integer & 0x01):
+            fall_time = cocotb.utils.get_sim_time(units="us")
+            break
 
-    await RisingEdge(dut.uo_out)
-    next_rise_time = cocotb.utils.get_sim_time(units="us")
+    while True:
+        await ValueChange(dut.uo_out)
+        if dut.uo_out.value.integer & 0x01:
+            next_rise_time = cocotb.utils.get_sim_time(units="us")
+            break
 
     high_time = fall_time - rise_time
     period = next_rise_time - rise_time
