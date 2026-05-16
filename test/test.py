@@ -173,7 +173,6 @@ async def test_pwm_freq(dut):
     await send_spi_transaction(dut, 1, 0x04, 0x80)  # 50% duty cycle
 
     await ClockCycles(dut.clk, 100)
-    from cocotb.triggers import ValueChange
     await Timer(1000, units="us")  # wait for PWM to stabilize
     t_start = cocotb.utils.get_sim_time(units="us")
     prev = dut.uo_out.value.integer & 0x01
