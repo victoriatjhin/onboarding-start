@@ -6,7 +6,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
 from cocotb.triggers import FallingEdge
 from cocotb.triggers import ClockCycles
-from cocotb.triggers import ValueChange
+from cocotb.triggers import Timer
 from cocotb.types import Logic
 from cocotb.types import LogicArray
 
@@ -174,16 +174,22 @@ async def test_pwm_freq(dut):
 
     await ClockCycles(dut.clk, 100)
     from cocotb.triggers import ValueChange
-    while True:
-        await ValueChange(dut.uo_out)
-        if dut.uo_out.value.integer & 0x01:
-            time1 = cocotb.utils.get_sim_time(units="us")
-            break
-    while True:
-        await ValueChange(dut.uo_out)
-        if dut.uo_out.value.integer & 0x01:
-            time2 = cocotb.utils.get_sim_time(units="us")
-            break
+    await Timer(1000, units="us")  # wait for PWM to stabilize
+    t_start = cocotb.utils.get_sim_time(units="us")
+    prev = dut.uo_out.value.integer & 0x01
+    time1 = None
+    time2 = None
+
+    for _ in range(10000):
+        await ClockCycles(dut.clk, 1)
+        curr = dut.uo_out.value.integer & 0x01
+        if curr == 1 and prev == 0:  # rising edge
+            if time1 is None:
+                time1 = cocotb.utils.get_sim_time(units="us")
+            elif time2 is None:
+                time2 = cocotb.utils.get_sim_time(units="us")
+                break
+        prev = curr 
 
     period_us = time2 - time1
     frequency = 1_000_000 / period_us
@@ -233,23 +239,24 @@ async def test_pwm_duty(dut):
     await send_spi_transaction(dut, 1, 0x04, 0x80)
     await ClockCycles(dut.clk, 100)
 
-    while True:
-        await ValueChange(dut.uo_out)
-        if dut.uo_out.value.integer & 0x01:
-            rise_time = cocotb.utils.get_sim_time(units="us")
-            break
+    prev = dut.uo_out.value.integer & 0x01
+    rise_time = None
+    fall_time = None
+    next_rise_time = None
 
-    while True:
-        await ValueChange(dut.uo_out)
-        if not (dut.uo_out.value.integer & 0x01):
-            fall_time = cocotb.utils.get_sim_time(units="us")
-            break
-
-    while True:
-        await ValueChange(dut.uo_out)
-        if dut.uo_out.value.integer & 0x01:
-            next_rise_time = cocotb.utils.get_sim_time(units="us")
-            break
+    for _ in range(50000):
+        await ClockCycles(dut.clk, 1)
+        curr = dut.uo_out.value.integer & 0x01
+        if curr == 1 and prev == 0:  # rising edge
+            if rise_time is None:
+                rise_time = cocotb.utils.get_sim_time(units="us")
+            elif next_rise_time is None:
+                next_rise_time = cocotb.utils.get_sim_time(units="us")
+                break
+        if curr == 0 and prev == 1:  # falling edge
+            if rise_time is not None and fall_time is None:
+                fall_time = cocotb.utils.get_sim_time(units="us")
+        prev = curr
 
     high_time = fall_time - rise_time
     period = next_rise_time - rise_time
